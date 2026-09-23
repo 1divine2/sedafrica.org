@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useRef } from "react";
 import { supabase } from "./supabase";
 import type { AdminUser } from "./types";
 import type { Session } from "@supabase/supabase-js";
@@ -29,6 +29,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const fetchingRef = useRef(false);
+
+  async function fetchAdminUser(userId: string) {
+    fetchingRef.current = true;
+    const { data, error } = await supabase
+      .from("admin_users")
+      .select("*")
+      .eq("id", userId)
+      .maybeSingle();
+    if (error) {
+      console.error("Failed to fetch admin user:", error.message);
+    }
+    setAdminUser(data);
+    setLoading(false);
+    fetchingRef.current = false;
+  }
 
   useEffect(() => {
     let mounted = true;
@@ -36,17 +52,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       if (!mounted) return;
       setSession(s);
-      if (s) fetchAdminUser(s.user.id);
-      else setLoading(false);
+      if (s) {
+        fetchAdminUser(s.user.id);
+      } else {
+        setLoading(false);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
       if (!mounted) return;
       setSession(s);
       if (s) {
-        (async () => {
-          await fetchAdminUser(s.user.id);
-        })();
+        if (!fetchingRef.current) {
+          (async () => {
+            await fetchAdminUser(s.user.id);
+          })();
+        }
       } else {
         setAdminUser(null);
         setLoading(false);
@@ -59,51 +80,73 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  async function fetchAdminUser(userId: string) {
-    const { data } = await supabase
-      .from("admin_users")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle();
-    setAdminUser(data);
-    setLoading(false);
-  }
-
   async function signIn(email: string, password: string) {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return error.message;
+    setLoading(true);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      setLoading(false);
+      return error.message;
+    }
+    if (data.session && data.user) {
+      setSession(data.session);
+      await fetchAdminUser(data.user.id);
+    } else {
+      setLoading(false);
+    }
     return null;
   }
 
   async function signUp(email: string, password: string, fullName: string) {
+    setLoading(true);
     const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) return error.message;
-
-    if (!data.user) return "Sign-up failed. Please try again.";
-
-    // Wait briefly for the session to propagate
-    let retries = 0;
-    while (retries < 10) {
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (sessionData.session) break;
-      await new Promise((r) => setTimeout(r, 300));
-      retries++;
+    if (error) {
+      setLoading(false);
+      return error.message;
     }
+
+    if (!data.user) {
+      setLoading(false);
+      return "Sign-up failed. Please try again.";
+    }
+
+    // Wait for the session to be available
+    let sess: Session | null = data.session;
+    if (!sess) {
+      let retries = 0;
+      while (retries < 15) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (sessionData.session) {
+          sess = sessionData.session;
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 300));
+        retries++;
+      }
+    }
+
+    if (!sess) {
+      setLoading(false);
+      return "Session could not be established. Please try signing in with the account you just created.";
+    }
+
+    setSession(sess);
 
     // Use the SECURITY DEFINER function to register in admin_users
     const { data: result, error: rpcError } = await supabase.rpc("register_admin_user", {
       p_full_name: fullName,
     });
 
-    if (rpcError) return rpcError.message;
+    if (rpcError) {
+      setLoading(false);
+      return rpcError.message;
+    }
 
     if (result === "not_authenticated") {
+      setLoading(false);
       return "Session could not be established. Please try signing in with the account you just created.";
     }
 
-    // Refresh admin user data
     await fetchAdminUser(data.user.id);
-
     return null;
   }
 
