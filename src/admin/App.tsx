@@ -12,9 +12,9 @@ import { VolunteersPage } from "./pages/VolunteersPage";
 import { NewsletterPage } from "./pages/NewsletterPage";
 
 export function App() {
-  const { session, adminUser, loading } = useAuth();
+  const { session, adminUser, initializing } = useAuth();
 
-  if (loading) {
+  if (initializing) {
     return (
       <div className="admin-loading">
         <div className="admin-spinner" />

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "./supabase";
 import type { AdminUser } from "./types";
 import type { Session } from "@supabase/supabase-js";
@@ -6,7 +6,7 @@ import type { Session } from "@supabase/supabase-js";
 interface AuthState {
   session: Session | null;
   adminUser: AdminUser | null;
-  loading: boolean;
+  initializing: boolean;
   signIn: (email: string, password: string) => Promise<string | null>;
   signUp: (email: string, password: string, fullName: string) => Promise<string | null>;
   signOut: () => Promise<void>;
@@ -15,7 +15,7 @@ interface AuthState {
 const AuthContext = createContext<AuthState>({
   session: null,
   adminUser: null,
-  loading: true,
+  initializing: true,
   signIn: async () => null,
   signUp: async () => null,
   signOut: async () => {},
@@ -28,11 +28,9 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
-  const [loading, setLoading] = useState(true);
-  const fetchingRef = useRef(false);
+  const [initializing, setInitializing] = useState(true);
 
-  async function fetchAdminUser(userId: string) {
-    fetchingRef.current = true;
+  async function fetchAdminUser(userId: string): Promise<AdminUser | null> {
     const { data, error } = await supabase
       .from("admin_users")
       .select("*")
@@ -40,37 +38,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .maybeSingle();
     if (error) {
       console.error("Failed to fetch admin user:", error.message);
+      return null;
     }
-    setAdminUser(data);
-    setLoading(false);
-    fetchingRef.current = false;
+    return data;
   }
 
   useEffect(() => {
     let mounted = true;
 
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
+    supabase.auth.getSession().then(async ({ data: { session: s } }) => {
       if (!mounted) return;
       setSession(s);
       if (s) {
-        fetchAdminUser(s.user.id);
-      } else {
-        setLoading(false);
+        const admin = await fetchAdminUser(s.user.id);
+        if (mounted) {
+          setAdminUser(admin);
+        }
       }
+      if (mounted) setInitializing(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
       if (!mounted) return;
       setSession(s);
-      if (s) {
-        if (!fetchingRef.current) {
-          (async () => {
-            await fetchAdminUser(s.user.id);
-          })();
-        }
-      } else {
+      if (!s) {
         setAdminUser(null);
-        setLoading(false);
       }
     });
 
@@ -80,73 +72,73 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  async function signIn(email: string, password: string) {
-    setLoading(true);
+  async function signIn(email: string, password: string): Promise<string | null> {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      setLoading(false);
-      return error.message;
+    if (error) return error.message;
+
+    if (!data.session || !data.user) {
+      return "Sign-in failed. Please try again.";
     }
-    if (data.session && data.user) {
-      setSession(data.session);
-      await fetchAdminUser(data.user.id);
-    } else {
-      setLoading(false);
+
+    setSession(data.session);
+
+    const admin = await fetchAdminUser(data.user.id);
+    if (!admin) {
+      await supabase.auth.signOut();
+      setSession(null);
+      return "Your account does not have admin access. Please create an account first.";
     }
+
+    setAdminUser(admin);
     return null;
   }
 
-  async function signUp(email: string, password: string, fullName: string) {
-    setLoading(true);
+  async function signUp(email: string, password: string, fullName: string): Promise<string | null> {
     const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) {
-      setLoading(false);
-      return error.message;
-    }
+    if (error) return error.message;
 
     if (!data.user) {
-      setLoading(false);
       return "Sign-up failed. Please try again.";
     }
 
-    // Wait for the session to be available
+    // signUp may or may not return a session immediately
     let sess: Session | null = data.session;
     if (!sess) {
-      let retries = 0;
-      while (retries < 15) {
-        const { data: sessionData } = await supabase.auth.getSession();
-        if (sessionData.session) {
-          sess = sessionData.session;
+      for (let i = 0; i < 20; i++) {
+        const { data: sd } = await supabase.auth.getSession();
+        if (sd.session) {
+          sess = sd.session;
           break;
         }
-        await new Promise((r) => setTimeout(r, 300));
-        retries++;
+        await new Promise((r) => setTimeout(r, 250));
       }
     }
 
     if (!sess) {
-      setLoading(false);
-      return "Session could not be established. Please try signing in with the account you just created.";
+      return "Account created, but session could not start. Please sign in with your new credentials.";
     }
 
     setSession(sess);
 
-    // Use the SECURITY DEFINER function to register in admin_users
-    const { data: result, error: rpcError } = await supabase.rpc("register_admin_user", {
+    // Register in admin_users via SECURITY DEFINER function
+    const { data: rpcResult, error: rpcError } = await supabase.rpc("register_admin_user", {
       p_full_name: fullName,
     });
 
     if (rpcError) {
-      setLoading(false);
-      return rpcError.message;
+      return "Account created, but admin registration failed: " + rpcError.message;
     }
 
-    if (result === "not_authenticated") {
-      setLoading(false);
-      return "Session could not be established. Please try signing in with the account you just created.";
+    if (rpcResult === "not_authenticated") {
+      return "Account created, but admin registration failed. Please sign in with your new credentials.";
     }
 
-    await fetchAdminUser(data.user.id);
+    const admin = await fetchAdminUser(data.user.id);
+    if (!admin) {
+      return "Account created, but could not load your admin profile. Please try signing in.";
+    }
+
+    setAdminUser(admin);
     return null;
   }
 
@@ -157,7 +149,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ session, adminUser, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ session, adminUser, initializing, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
