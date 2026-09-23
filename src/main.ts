@@ -1,4 +1,9 @@
 import "./style.css";
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supa = createClient(supabaseUrl, supabaseAnonKey);
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
@@ -54,7 +59,7 @@ app.innerHTML = `
     <section class="newsletter"><div class="container newsletter-inner"><div class="paper-plane">⌁</div><div><p class="kicker light">STAY CONNECTED</p><h2>Subscribe To Our Newsletter</h2><p>Stay updated with our latest activities, events and success stories.</p></div><form class="newsletter-form"><input required type="email" placeholder="Enter your email address"><button type="submit">Subscribe Now</button></form></div></section>
   </main>
 
-  <footer class="site-footer" id="contact"><div class="container footer-grid"><div class="footer-about"><a class="brand footer-brand" href="#top">${logo}<span><strong>SEDA</strong><small>Social & Economic<br>Development for Africa</small></span></a><p>An independent community focused and nonprofit organization working for social and economic development in Sierra Leone.</p><div class="socials"><a href="https://www.facebook.com/share/1CHKMHM6ZG/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 22v-8h2.7l.4-3h-3.1V9.1c0-.87.24-1.47 1.48-1.47H16V4.13c-.31-.04-1.37-.13-2.6-.13-2.57 0-4.33 1.57-4.33 4.45V11H6v3h3.1v8h.4Z"/></svg></a><a href="https://www.instagram.com/sed_africa?stkn=MWZoNzc4Y3k1cnZvYw==" target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 3.25.15 4.77 1.69 4.92 4.92.06 1.27.07 1.65.07 4.85 0 3.2-.01 3.58-.07 4.85-.15 3.23-1.66 4.77-4.92 4.92-1.27.06-1.64.07-4.85.07-3.2 0-3.58-.01-4.85-.07-3.26-.15-4.77-1.7-4.92-4.92-.06-1.27-.07-1.64-.07-4.85 0-3.2.01-3.58.07-4.85C7.38 3.92 8.9 2.38 12 2.16Zm0 4.15a5.69 5.69 0 1 0 0 11.38 5.69 5.69 0 0 0 0-11.38Zm6.24-.74a1.24 1.24 0 1 0 0 2.48 1.24 1.24 0 0 0 0-2.48Z"/></svg></a><a href="https://x.com/sedafricaorg" target="_blank" rel="noopener noreferrer" aria-label="X" title="X"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 2.5h3.6l-7.86 9.02L24 21.5h-7.23l-5.66-6.8-6.47 6.8H1l8.4-9.65L0 2.5h7.44l5.12 6.2L18.9 2.5Z"/></svg></a><a href="https://www.linkedin.com/company/social-and-economic-development-for-africa/about/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29ZM5.34 7.43c-1.14 0-2.06-.92-2.06-2.06s.92-2.06 2.06-2.06 2.06.92 2.06 2.06-.92 2.06-2.06 2.06Zm1.78 13.02H3.56V9h3.56v11.45Z"/></svg></a></div></div><div><h3>Quick Links</h3><a href="#about">About Us</a><a href="/education.html">Programs</a><a href="#news">News</a><a href="#contact">Contact</a></div><div><h3>Get Involved</h3><a href="#donate">Donate Now</a><a href="#volunteer">Volunteer</a><a href="#volunteer">Partner With Us</a><a href="#contact">Membership</a><a href="#contact">Support SEDA</a></div><div><h3>Contact Us</h3><p><svg class="contact-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C7.03 2 3 6.03 3 11c0 7 9 11 9 11s9-4 9-11c0-4.97-4.03-9-9-9Zm0 12.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"/></svg> No. 13 Walpole Street,<br>Freetown, Sierra Leone</p><p><svg class="contact-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.24 1.02l-2.2 2.2Z"/></svg> +232-76-920-000</p><p><svg class="contact-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2Zm0 4-8 5-8-5V6l8 5 8-5v2Z"/></svg> <a class="email-link" href="mailto:aabs8210@yahoo.com">aabs8210@yahoo.com</a></p></div></div><div class="footer-bottom"><div class="container"><span>© 2026 SEDA. All Rights Reserved.</span><span>Made with purpose for Sierra Leone.</span></div></div><div class="footer-policy-row"><div class="container"><a href="/privacy-policy.html">Privacy Policy</a><a href="/terms-conditions.html">Terms & Conditions</a><a href="/cookie-policy.html">Cookie Policy</a></div></div></footer>
+  <footer class="site-footer" id="contact"><div class="container footer-grid"><div class="footer-about"><a class="brand footer-brand" href="#top">${logo}<span><strong>SEDA</strong><small>Social & Economic<br>Development for Africa</small></span></a><p>An independent community focused and nonprofit organization working for social and economic development in Sierra Leone.</p><div class="socials"><a href="https://www.facebook.com/share/1CHKMHM6ZG/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 22v-8h2.7l.4-3h-3.1V9.1c0-.87.24-1.47 1.48-1.47H16V4.13c-.31-.04-1.37-.13-2.6-.13-2.57 0-4.33 1.57-4.33 4.45V11H6v3h3.1v8h.4Z"/></svg></a><a href="https://www.instagram.com/sed_africa?stkn=MWZoNzc4Y3k1cnZvYw==" target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 3.25.15 4.77 1.69 4.92 4.92.06 1.27.07 1.65.07 4.85 0 3.2-.01 3.58-.07 4.85-.15 3.23-1.66 4.77-4.92 4.92-1.27.06-1.64.07-4.85.07-3.2 0-3.58-.01-4.85-.07-3.26-.15-4.77-1.7-4.92-4.92-.06-1.27-.07-1.64-.07-4.85 0-3.2.01-3.58.07-4.85C7.38 3.92 8.9 2.38 12 2.16Zm0 4.15a5.69 5.69 0 1 0 0 11.38 5.69 5.69 0 0 0 0-11.38Zm6.24-.74a1.24 1.24 0 1 0 0 2.48 1.24 1.24 0 0 0 0-2.48Z"/></svg></a><a href="https://x.com/sedafricaorg" target="_blank" rel="noopener noreferrer" aria-label="X" title="X"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 2.5h3.6l-7.86 9.02L24 21.5h-7.23l-5.66-6.8-6.47 6.8H1l8.4-9.65L0 2.5h7.44l5.12 6.2L18.9 2.5Z"/></svg></a><a href="https://www.linkedin.com/company/social-and-economic-development-for-africa/about/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29ZM5.34 7.43c-1.14 0-2.06-.92-2.06-2.06s.92-2.06 2.06-2.06 2.06.92 2.06 2.06-.92 2.06-2.06 2.06Zm1.78 13.02H3.56V9h3.56v11.45Z"/></svg></a></div></div><div><h3>Quick Links</h3><a href="#about">About Us</a><a href="/education.html">Programs</a><a href="#news">News</a><a href="#contact">Contact</a></div><div><h3>Get Involved</h3><a href="#donate">Donate Now</a><a href="#volunteer">Volunteer</a><a href="#volunteer">Partner With Us</a><a href="#contact">Membership</a><a href="#contact">Support SEDA</a></div><div><h3>Contact Us</h3><p><svg class="contact-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C7.03 2 3 6.03 3 11c0 7 9 11 9 11s9-4 9-11c0-4.97-4.03-9-9-9Zm0 12.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"/></svg> No. 13 Walpole Street,<br>Freetown, Sierra Leone</p><p><svg class="contact-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.24 1.02l-2.2 2.2Z"/></svg> +232-76-920-000</p><p><svg class="contact-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2Zm0 4-8 5-8-5V6l8 5 8-5v2Z"/></svg> <a class="email-link" href="mailto:aabs8210@yahoo.com">aabs8210@yahoo.com</a></p></div></div><div class="footer-bottom"><div class="container"><span>© 2026 SEDA. All Rights Reserved.</span><span>Made with purpose for Sierra Leone.</span></div></div><div class="footer-policy-row"><div class="container"><a href="/privacy-policy.html">Privacy Policy</a><a href="/terms-conditions.html">Terms & Conditions</a><a href="/cookie-policy.html">Cookie Policy</a><a href="/admin.html">Admin</a></div></div></footer>
 `;
 
 const officialEmail = "info@sedafrica.org";
@@ -179,21 +184,13 @@ document
   .querySelector<HTMLFormElement>(".volunteer-form")
   ?.addEventListener("submit", (event) => {
     event.preventDefault();
-    const values = getFormValues(event.currentTarget as HTMLFormElement);
-    openEmailDraft(
-      "New SEDA volunteer application",
-      `Name: ${values[0]}\nEmail: ${values[1]}\nPhone: ${values[2]}\nRole: ${values[3]}`,
-    );
+    saveVolunteer(event.currentTarget as HTMLFormElement);
   });
 document
   .querySelector<HTMLFormElement>(".newsletter-form")
   ?.addEventListener("submit", (event) => {
     event.preventDefault();
-    const values = getFormValues(event.currentTarget as HTMLFormElement);
-    openEmailDraft(
-      "SEDA newsletter subscription",
-      `Please add this email to the SEDA newsletter: ${values[0]}`,
-    );
+    saveNewsletter(event.currentTarget as HTMLFormElement);
   });
 
 function getFormValues(form: HTMLFormElement) {
@@ -204,20 +201,96 @@ function getFormValues(form: HTMLFormElement) {
   ).map((field) => field.value);
 }
 
-function openEmailDraft(subject: string, body: string) {
-  fetch(`https://formsubmit.co/ajax/${officialEmail}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({
-      _subject: subject,
-      message: body,
-      _captcha: "false",
-    }),
-  })
-    .then(() => window.alert(`Your message was sent to ${officialEmail}.`))
-    .catch(() =>
-      window.alert("We could not send the message. Please try again."),
-    );
+async function saveVolunteer(form: HTMLFormElement) {
+  const values = getFormValues(form);
+  const { error } = await supa.from("volunteers").insert({
+    full_name: values[0],
+    email: values[1],
+    phone: values[2],
+    role: values[3],
+  });
+  if (error) {
+    window.alert("We could not submit your application. Please try again.");
+  } else {
+    window.alert("Thank you! Your volunteer application has been submitted.");
+    form.reset();
+  }
+}
+
+async function saveNewsletter(form: HTMLFormElement) {
+  const values = getFormValues(form);
+  const { error } = await supa.from("newsletter_subscribers").insert({
+    email: values[0],
+  });
+  if (error && error.code === "23505") {
+    window.alert("You are already subscribed! Thank you.");
+  } else if (error) {
+    window.alert("Subscription failed. Please try again.");
+  } else {
+    window.alert("Thank you for subscribing to our newsletter!");
+    form.reset();
+  }
+}
+
+async function saveContactMessage(form: HTMLFormElement) {
+  const values = getFormValues(form);
+  const { error } = await supa.from("contact_messages").insert({
+    name: values[0],
+    email: values[1],
+    message: values[2],
+  });
+  if (error) {
+    window.alert("We could not send your message. Please try again.");
+  } else {
+    window.alert("Thank you! Your message has been sent to SEDA.");
+    form.reset();
+  }
+}
+
+async function saveDonation(amount: number, frequency: string, purpose: string, email: string, name: string) {
+  const { error } = await supa.from("donations").insert({
+    amount,
+    currency: "EUR",
+    frequency,
+    purpose,
+    donor_name: name,
+    donor_email: email,
+    status: "completed",
+  });
+  return !error;
+}
+
+async function loadDynamicNews() {
+  const desk = document.querySelector(".news-desk");
+  if (!desk) return;
+  const { data } = await supa.from("news_articles").select("*").eq("status", "published").order("published_at", { ascending: false }).limit(6);
+  if (!data || data.length === 0) return;
+  const lead = data[0];
+  const sidebar = data.slice(1, 3);
+  const lower = data.slice(3, 6);
+  const leadHtml = `<article class="lead-story news-item" data-category="${lead.category || "Community"}"><img src="${lead.image_url || images.event}" alt="${lead.title}"><div class="lead-copy"><small>${(lead.category || "COMMUNITY").toUpperCase()} · ${lead.published_at ? new Date(lead.published_at).toLocaleDateString() : ""}</small><h2>${lead.title}</h2><p>${lead.summary || ""}</p><a href="#contact">Read the full field note ${arrow}</a></div></article>`;
+  const railHtml = sidebar.map((a) => `<article class="news-item" data-category="${a.category || "Community"}"><img src="${a.image_url || images.event}" alt="${a.title}"><small>${(a.category || "").toUpperCase()} · ${a.published_at ? new Date(a.published_at).toLocaleDateString() : ""}</small><h3>${a.title}</h3><p>${a.summary || ""}</p><a href="#contact">Read story ${arrow}</a></article>`).join("");
+  const lowerHtml = lower.map((a) => {
+    const d = a.published_at ? new Date(a.published_at) : new Date(a.created_at);
+    return `<article class="news-item" data-category="${a.category || "Community"}"><div class="date-stamp">${d.getDate()}<br><small>${d.toLocaleString("en", { month: "short" }).toUpperCase()}</small></div><div><small>${(a.category || "").toUpperCase()}</small><h3>${a.title}</h3><p>${a.summary || ""}</p></div></article>`;
+  }).join("");
+  desk.innerHTML = leadHtml + (sidebar.length ? `<div class="news-rail">${railHtml}</div>` : "") + (lower.length ? `<div class="news-lower">${lowerHtml}</div>` : "");
+  const newsItems = document.querySelectorAll<HTMLElement>(".news-item");
+  const applyNewsFilter = (term: string, category: string) =>
+    newsItems.forEach((item) => {
+      const matchesText = item.textContent?.toLowerCase().includes(term.toLowerCase()) ?? false;
+      const matchesCategory = category === "all" || item.dataset.category === category;
+      item.style.display = matchesText && matchesCategory ? "" : "none";
+    });
+  document.querySelectorAll<HTMLButtonElement>(".news-filters button").forEach((button) =>
+    button.addEventListener("click", () => {
+      document.querySelector(".news-filters .active")?.classList.remove("active");
+      button.classList.add("active");
+      applyNewsFilter(document.querySelector<HTMLInputElement>("#news-search")?.value ?? "", button.dataset.filter ?? "all");
+    }));
+  document.querySelector<HTMLInputElement>("#news-search")?.addEventListener("input", (event) => {
+    applyNewsFilter((event.target as HTMLInputElement).value, document.querySelector<HTMLButtonElement>(".news-filters .active")?.dataset.filter ?? "all");
+  });
 }
 
 function renderDonationPage() {
@@ -252,9 +325,18 @@ function renderPaymentStep() {
   panel.innerHTML = `<p class="kicker green">SECURE CHECKOUT</p><h1>Complete Your Donation</h1><p class="payment-intro">Enter your details below to complete your support for SEDA's work in Sierra Leone.</p><form class="payment-form" id="payment-form"><label>Cardholder name<input required autocomplete="cc-name" placeholder="Full name on card"></label><label>Card number<input required inputmode="numeric" autocomplete="cc-number" maxlength="19" placeholder="1234 5678 9012 3456"></label><div class="payment-row"><label>Expiry date<input required autocomplete="cc-exp" maxlength="5" placeholder="MM / YY"></label><label>Security code<input required inputmode="numeric" autocomplete="cc-csc" maxlength="4" placeholder="CVV"></label></div><label>Email address<input required type="email" autocomplete="email" placeholder="you@example.com"></label><button class="continue-btn" type="submit">Submit Donation</button><small class="payment-note">Your payment details are used only for this checkout demonstration and are not stored.</small></form>`;
   document
     .querySelector<HTMLFormElement>("#payment-form")
-    ?.addEventListener("submit", (event) => {
+    ?.addEventListener("submit", async (event) => {
       event.preventDefault();
-      panel.innerHTML = `<div class="payment-success"><span>✓</span><p class="kicker green">THANK YOU</p><h1>Donation Ready</h1><p>Your support will help SEDA build human capacity and strengthen communities across Sierra Leone.</p><a class="donation-back" href="#top">Return to website ${arrow}</a></div>`;
+      const form = event.currentTarget as HTMLFormElement;
+      const inputs = Array.from(form.querySelectorAll<HTMLInputElement>("input")).map((i) => i.value);
+      const donorName = inputs[0];
+      const donorEmail = inputs[4];
+      const amountEl = document.querySelector<HTMLButtonElement>(".amount-card.active");
+      const amount = amountEl ? parseInt(amountEl.textContent?.replace(/[^0-9]/g, "") || "75") : 75;
+      const freq = document.querySelector<HTMLButtonElement>(".frequency-options .choice-card.active")?.textContent?.trim().includes("Monthly") ? "monthly" : "single";
+      const purpose = document.querySelector<HTMLSelectElement>("#donation-purpose")?.value || "Where it's most needed";
+      await saveDonation(amount, freq, purpose, donorEmail, donorName);
+      panel.innerHTML = `<div class="payment-success"><span>\u2713</span><p class="kicker green">THANK YOU</p><h1>Donation Ready</h1><p>Your support will help SEDA build human capacity and strengthen communities across Sierra Leone.</p><a class="donation-back" href="#top">Return to website ${arrow}</a></div>`;
     });
 }
 
@@ -301,6 +383,9 @@ function renderInfoPage(pageName: "about" | "news" | "contact") {
   );
   setProgramLinks();
   app.innerHTML = app.innerHTML.replaceAll(">Blog<", ">News<");
+  if (pageName === "news") {
+    loadDynamicNews();
+  }
   const newsItems = document.querySelectorAll<HTMLElement>(".news-item");
   const applyNewsFilter = (term: string, category: string) =>
     newsItems.forEach((item) => {
@@ -351,11 +436,7 @@ function renderInfoPage(pageName: "about" | "news" | "contact") {
     .querySelector<HTMLFormElement>("#contact-form")
     ?.addEventListener("submit", (event) => {
       event.preventDefault();
-      const values = getFormValues(event.currentTarget as HTMLFormElement);
-      openEmailDraft(
-        "New message from the SEDA website",
-        `Name: ${values[0]}\nEmail: ${values[1]}\n\nMessage:\n${values[2]}`,
-      );
+      saveContactMessage(event.currentTarget as HTMLFormElement);
     });
 }
 
