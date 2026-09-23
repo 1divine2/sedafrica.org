@@ -31,13 +31,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     supabase.auth.getSession().then(({ data: { session: s } }) => {
+      if (!mounted) return;
       setSession(s);
       if (s) fetchAdminUser(s.user.id);
       else setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+      if (!mounted) return;
       setSession(s);
       if (s) {
         (async () => {
@@ -49,7 +53,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   async function fetchAdminUser(userId: string) {
@@ -71,25 +78,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function signUp(email: string, password: string, fullName: string) {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return error.message;
-    if (data.user) {
-      await supabase.rpc("promote_first_admin");
-      const { data: existing } = await supabase
-        .from("admin_users")
-        .select("id")
-        .eq("id", data.user.id)
-        .maybeSingle();
-      if (!existing) {
-        const { error: insertError } = await supabase.from("admin_users").insert({
-          id: data.user.id,
-          email,
-          full_name: fullName,
-          role: "editor",
-        });
-        if (insertError) return insertError.message;
-      } else {
-        await supabase.from("admin_users").update({ full_name: fullName }).eq("id", data.user.id);
-      }
+
+    if (!data.user) return "Sign-up failed. Please try again.";
+
+    // Wait briefly for the session to propagate
+    let retries = 0;
+    while (retries < 10) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session) break;
+      await new Promise((r) => setTimeout(r, 300));
+      retries++;
     }
+
+    // Use the SECURITY DEFINER function to register in admin_users
+    const { data: result, error: rpcError } = await supabase.rpc("register_admin_user", {
+      p_full_name: fullName,
+    });
+
+    if (rpcError) return rpcError.message;
+
+    if (result === "not_authenticated") {
+      return "Session could not be established. Please try signing in with the account you just created.";
+    }
+
+    // Refresh admin user data
+    await fetchAdminUser(data.user.id);
+
     return null;
   }
 
