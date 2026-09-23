@@ -5,6 +5,45 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supa = createClient(supabaseUrl, supabaseAnonKey);
 
+// --- Toast notification system ---
+function ensureToastContainer(): HTMLDivElement {
+  let container = document.querySelector<HTMLDivElement>(".toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.className = "toast-container";
+    document.body.appendChild(container);
+  }
+  return container;
+}
+
+function showToast(
+  type: "success" | "error" | "info",
+  title: string,
+  message: string,
+  duration = 4500,
+) {
+  const container = ensureToastContainer();
+  const icons = { success: "\u2713", error: "\u2717", info: "\u2139" };
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${type}`;
+  toast.setAttribute("role", "alert");
+  toast.innerHTML =
+    `<span class="toast-icon">${icons[type]}</span>` +
+    `<div class="toast-body"><div class="toast-title">${title}</div><div class="toast-message">${message}</div></div>` +
+    `<button class="toast-close" aria-label="Dismiss">&times;</button>` +
+    `<span class="toast-progress" style="animation-duration:${duration}ms"></span>`;
+  container.appendChild(toast);
+
+  const dismiss = () => {
+    if (toast.classList.contains("toast-exit")) return;
+    toast.classList.add("toast-exit");
+    toast.addEventListener("animationend", () => toast.remove());
+  };
+  toast.querySelector(".toast-close")!.addEventListener("click", dismiss);
+  window.setTimeout(dismiss, duration);
+}
+// --- End toast system ---
+
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
 const logo = `<img src="/seda-logo.jpg" alt="Social and Economic Development for Africa logo">`;
@@ -210,9 +249,9 @@ async function saveVolunteer(form: HTMLFormElement) {
     role: values[3],
   });
   if (error) {
-    window.alert("We could not submit your application. Please try again.");
+    showToast("error", "Submission Failed", "We could not submit your application. Please try again.");
   } else {
-    window.alert("Thank you! Your volunteer application has been submitted.");
+    showToast("success", "Application Sent", "Thank you! Your volunteer application has been submitted.");
     form.reset();
   }
 }
@@ -223,11 +262,11 @@ async function saveNewsletter(form: HTMLFormElement) {
     email: values[0],
   });
   if (error && error.code === "23505") {
-    window.alert("You are already subscribed! Thank you.");
+    showToast("info", "Already Subscribed", "You are already subscribed! Thank you.");
   } else if (error) {
-    window.alert("Subscription failed. Please try again.");
+    showToast("error", "Subscription Failed", "Something went wrong. Please try again.");
   } else {
-    window.alert("Thank you for subscribing to our newsletter!");
+    showToast("success", "Subscribed", "Thank you for subscribing to our newsletter!");
     form.reset();
   }
 }
@@ -240,9 +279,9 @@ async function saveContactMessage(form: HTMLFormElement) {
     message: values[2],
   });
   if (error) {
-    window.alert("We could not send your message. Please try again.");
+    showToast("error", "Message Failed", "We could not send your message. Please try again.");
   } else {
-    window.alert("Thank you! Your message has been sent to SEDA.");
+    showToast("success", "Message Sent", "Thank you! Your message has been sent to SEDA.");
     form.reset();
   }
 }
@@ -312,7 +351,7 @@ function renderDonationPage() {
   document
     .querySelector<HTMLButtonElement>(".own-amount")
     ?.addEventListener("click", () =>
-      window.alert("Enter your own amount on the next step."),
+      showToast("info", "Custom Amount", "You can enter your own amount on the next step."),
     );
   document
     .querySelector<HTMLButtonElement>("#continue-donation")
