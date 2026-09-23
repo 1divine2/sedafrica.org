@@ -29,7 +29,7 @@ export function LoginPage() {
       <div className="login-card">
         <div className="login-brand">
           <img src="/seda-logo.jpg" alt="SEDA" />
-          <h1>SEDA Admin</h1>
+          <h1>SEDA Admin Portal</h1>
           <p>Content Management System</p>
         </div>
 
