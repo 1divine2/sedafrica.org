@@ -31,16 +31,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [initializing, setInitializing] = useState(true);
 
   async function fetchAdminUser(userId: string): Promise<AdminUser | null> {
-    const { data, error } = await supabase
-      .from("admin_users")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle();
-    if (error) {
-      console.error("Failed to fetch admin user:", error.message);
-      return null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const { data, error } = await supabase
+        .from("admin_users")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle();
+      if (data) return data;
+      if (error) console.error("fetchAdminUser attempt", attempt, error.message);
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 500));
     }
-    return data;
+    return null;
   }
 
   useEffect(() => {
@@ -51,9 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(s);
       if (s) {
         const admin = await fetchAdminUser(s.user.id);
-        if (mounted) {
-          setAdminUser(admin);
-        }
+        if (mounted) setAdminUser(admin);
       }
       if (mounted) setInitializing(false);
     });
@@ -61,9 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
       if (!mounted) return;
       setSession(s);
-      if (!s) {
-        setAdminUser(null);
-      }
+      if (!s) setAdminUser(null);
     });
 
     return () => {
@@ -86,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!admin) {
       await supabase.auth.signOut();
       setSession(null);
-      return "Your account does not have admin access. Please create an account first.";
+      return "Your account does not have admin access. Please create an account using the Create Account tab.";
     }
 
     setAdminUser(admin);
@@ -97,19 +94,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return error.message;
 
-    if (!data.user) {
-      return "Sign-up failed. Please try again.";
-    }
+    if (!data.user) return "Sign-up failed. Please try again.";
 
-    // signUp may or may not return a session immediately
     let sess: Session | null = data.session;
     if (!sess) {
       for (let i = 0; i < 20; i++) {
         const { data: sd } = await supabase.auth.getSession();
-        if (sd.session) {
-          sess = sd.session;
-          break;
-        }
+        if (sd.session) { sess = sd.session; break; }
         await new Promise((r) => setTimeout(r, 250));
       }
     }
@@ -120,23 +111,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setSession(sess);
 
-    // Register in admin_users via SECURITY DEFINER function
     const { data: rpcResult, error: rpcError } = await supabase.rpc("register_admin_user", {
       p_full_name: fullName,
     });
 
-    if (rpcError) {
-      return "Account created, but admin registration failed: " + rpcError.message;
+    if (rpcError) return "Account created, but admin setup failed: " + rpcError.message + ". Please try signing in.";
+
+    if (rpcResult && typeof rpcResult === "object" && "error" in rpcResult) {
+      return "Account created, but admin setup failed. Please try signing in with your new credentials.";
     }
 
-    if (rpcResult === "not_authenticated") {
-      return "Account created, but admin registration failed. Please sign in with your new credentials.";
+    if (rpcResult && typeof rpcResult === "object" && "id" in rpcResult) {
+      setAdminUser(rpcResult as AdminUser);
+      return null;
     }
 
     const admin = await fetchAdminUser(data.user.id);
-    if (!admin) {
-      return "Account created, but could not load your admin profile. Please try signing in.";
-    }
+    if (!admin) return "Account created. Please sign in with your new credentials.";
 
     setAdminUser(admin);
     return null;
