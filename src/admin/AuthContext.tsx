@@ -45,13 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    supabase.auth.getSession().then(async ({ data: { session: s } }) => {
-      if (!mounted) return;
-      setSession(s);
-      if (s) {
-        const admin = await loadAdminProfile();
-        if (mounted) setAdminUser(admin);
-      }
+    supabase.auth.signOut().then(() => {
       if (mounted) setInitializing(false);
     });
 
